@@ -1,5 +1,4 @@
 
-// Dummy pilot data
 const Pilots = [
   
   { name: 'Jane Doe', profileImg: 'https://randomuser.me/api/portraits/women/44.jpg', experience: 9, latitude: 34.0522, longitude: -118.2437 },
@@ -42,7 +41,10 @@ const getPilotsWithinRange = async (req, res) => {
       return distance <= range;
     }).sort((a, b) => b.experience - a.experience).slice(0, 11);
     
-    res.json(filteredPilots);
+    
+      res.json(filteredPilots);
+   
+    
 
   } catch (error) {
     console.error('Error fetching pilots:', error);
@@ -50,9 +52,8 @@ const getPilotsWithinRange = async (req, res) => {
   }
 };
 
-// Calculate distance using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of the Earth in km
+  const R = 6371; 
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 

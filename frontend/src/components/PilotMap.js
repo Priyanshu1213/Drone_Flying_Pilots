@@ -6,7 +6,7 @@ import L from 'leaflet';
 
 import "./po.css"
 
-// Custom marker icon
+
 const createCustomIcon = (iconUrl) => {
   return new L.Icon({
     iconUrl: iconUrl,
@@ -20,11 +20,9 @@ const createCustomIcon = (iconUrl) => {
 
 
 const PilotMap = ({ pilots, adminCoords }) => {
-  // Admin marker icon
+  
   const adminIcon = createCustomIcon('https://cdn-icons-png.flaticon.com/512/149/149071.png');
 
-   
- 
 
   return (
     <MapContainer center={adminCoords} zoom={2} >
@@ -33,7 +31,6 @@ const PilotMap = ({ pilots, adminCoords }) => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 
-      {/* Render Pilots */}
       {pilots.map((pilot, idx) => (
         <Marker key={idx} position={[pilot.latitude, pilot.longitude]}  icon={createCustomIcon(pilot.profileImg)  } >
           <Popup>
@@ -51,8 +48,8 @@ const PilotMap = ({ pilots, adminCoords }) => {
         </Marker>
       ))}
 
-      {/* Admin Location */}
-{adminCoords[0] !== 0 && adminCoords[1] !== 0 && (
+      
+{/* {adminCoords[0] !== 0 && adminCoords[1] !== 0 && ( */}
   <Marker position={adminCoords} icon={adminIcon}>
     <Popup>
       <div style={{ textAlign: 'center', padding: '10px' }}>
@@ -61,7 +58,7 @@ const PilotMap = ({ pilots, adminCoords }) => {
       </div>
     </Popup>
   </Marker>
-)}
+{/* )} */}
 
     </MapContainer>
   );

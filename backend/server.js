@@ -9,7 +9,7 @@ const app = express();
 // Middleware
 
 const corsOptions = {
-  origin: "https://priyanshu-drone-flying-pilot.netlify.app",
+  origin: ["https://priyanshu-drone-flying-pilot.netlify.app","http://localhost:3000"],
   credentials: true,
 };
 

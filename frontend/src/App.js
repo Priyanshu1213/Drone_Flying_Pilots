@@ -1,8 +1,11 @@
+
+
 import React, { useState, useEffect } from 'react';
 import PilotMap from './components/PilotMap';
 import Filters from './components/Filters';
 import axios from 'axios';
 import './App.css';
+import Loader from './components/loader';
 
 function App() {
   const [pilots, setPilots] = useState([]);
@@ -12,56 +15,72 @@ function App() {
   const [lngInput, setLngInput] = useState('');
   const [useCurrentLocation, setUseCurrentLocation] = useState(true);
   const [p2, setP2] = useState([]);
+  const [loading, setLoading] = useState(true); 
+  const [firstLoad, setFirstLoad] = useState(true); 
 
-  // Fetch pilots based on admin location and range
   useEffect(() => {
     const fetchPilots = async () => {
+      if (firstLoad) {
+        setLoading(true); 
+      }
       try {
         const [lat, lng] = adminCoords;
-        const response = await axios.get(`https://drone-flying-pilots.onrender.com/api/pilots/search`, {
+        const response = await axios.get(`http://localhost:5000/api/pilots/search`, {
           params: { lat, lng, range },
         });
-        setPilots(response.data); // Assuming response.data contains the pilot list
-        setP2(response.data);
-        // console.log(response.data);
+
+        setPilots(response.data); 
+        setP2(response.data); 
+
+        if (firstLoad) {
+          setLoading(false); 
+          setFirstLoad(false); 
+        }
       } catch (error) {
-        console.error("Error fetching pilots:", error);
+        if (error.message === "Network Error") {
+          console.error("Network error");
+        } else {
+          console.error("Error fetching pilots:", error);
+        }
+
+        if (firstLoad) {
+          setLoading(false); 
+        }
       }
     };
 
-    if (adminCoords[0] !== 0 && adminCoords[1] !== 0) {
-      fetchPilots();  // Fetch only when valid coordinates are available
+    // if (adminCoords[0] !== 0 && adminCoords[1] !== 0) {
+      fetchPilots(); 
+    // }
+  }, [adminCoords, range, firstLoad]);
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    if (query === '') {
+      setPilots(p2); 
+    } else {
+      const newPilots = p2.filter((pilot) =>
+        pilot.name.toLowerCase().includes(query.toLowerCase()) ||
+        pilot.experience >= parseInt(query)
+      );
+      setPilots(newPilots);
     }
-  }, [adminCoords, range]);
-
-
-
-
-  const handleSearch =(e)=>{
-    const quary = e.target.value;
-    if(quary ===''){
-      setPilots(p2)
-    }
-    else{
-      const newPilots = pilots.filter((pilot)=>pilot.name.toLowerCase().includes(quary.toLowerCase()) ||
-       pilot.experience >= parseInt(quary))
-    setPilots(newPilots);
-    }
-    
-
-  }
-
-
-
+  };
 
   const handleUseCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setAdminCoords([position.coords.latitude, position.coords.longitude]);
-        setLatInput('');
-        setLngInput('');
+        if (position) {
+          setAdminCoords([position.coords.latitude, position.coords.longitude]);
+          setLatInput('');
+          setLngInput('');
+        } else {
+          console.log("Failed to get location");
+        }
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
       }
-      
     );
   };
 
@@ -77,90 +96,92 @@ function App() {
     }
   };
 
-
   const handleClear = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setLatInput('');
     setLngInput('');
   };
 
-
+  // useEffect(() => {
+  //   if (useCurrentLocation) {
+  //     handleUseCurrentLocation();
+  //   }
+  // }, [useCurrentLocation]);
 
   return (
     <>
-    
-    <div className="search-container">
-    <h> Flying Pilot</h>
-    <input 
-      type="search"
-      placeholder="Search pilots"
-      onChange={handleSearch}
-    />
-  </div>
-    <div className="App">
-      
-
-      <div className='leftside'>
-
-      <div className='radioo' style={{ marginBottom: '20px' }}>
-        <label >
-          <input
-            type="radio"
-            checked={useCurrentLocation}
-            onChange={() => setUseCurrentLocation(true)}
-          />
-          Use Current Location
-        </label>
-        <label >
-          <input
-            type="radio"
-            checked={!useCurrentLocation}
-            onChange={() => setUseCurrentLocation(false)}
-          />
-          Enter Coordinates
-        </label>
+      <div className="search-container">
+        <h>Flying Pilot</h>
+        <input
+          type="search"
+          placeholder="Search pilots"
+          onChange={handleSearch}
+        />
       </div>
-
-
-      {useCurrentLocation ? (
-        <button onClick={handleUseCurrentLocation} style={{ marginBottom: '20px' }}>
-          Get Current Location
-        </button>
-      ) : (
-        <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
-          <div>
+      <div className="App">
+        <div className="leftside">
+          <div className="radioo" style={{ marginBottom: '20px' }}>
             <label>
-              Latitude:
               <input
-                type="text"
-                value={latInput}
-                onChange={(e) => setLatInput(e.target.value)}
-                placeholder="Enter latitude"
+                type="radio"
+                checked={useCurrentLocation}
+                onChange={() => setUseCurrentLocation(true)}
               />
+              Use Current Location
+            </label>
+            <label>
+              <input
+                type="radio"
+                checked={!useCurrentLocation}
+                onChange={() => setUseCurrentLocation(false)}
+              />
+              Enter Coordinates
             </label>
           </div>
-          <div>
-            <label>
-              Longitude:
-              <input
-                type="text"
-                value={lngInput}
-                onChange={(e) => setLngInput(e.target.value)}
-                placeholder="Enter longitude"
-              />
-            </label>
-          </div>
-          <button type="submit">Update Location</button>
-          <button onClick={handleClear}>Clear</button>
-        </form>
-      )}
 
-      <Filters aetRange={setRange} />
+          {useCurrentLocation ? (
+            <button style={{ marginBottom: '20px' }} onClick={handleUseCurrentLocation}>
+              Get Current Location
+            </button>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+              <div>
+                <label>
+                  Latitude:
+                  <input
+                    type="text"
+                    value={latInput}
+                    onChange={(e) => setLatInput(e.target.value)}
+                    placeholder="Enter latitude"
+                  />
+                </label>
+              </div>
+              <div>
+                <label>
+                  Longitude:
+                  <input
+                    type="text"
+                    value={lngInput}
+                    onChange={(e) => setLngInput(e.target.value)}
+                    placeholder="Enter longitude"
+                  />
+                </label>
+              </div>
+              <button type="submit">Update Location</button>
+              <button onClick={handleClear}>Clear</button>
+            </form>
+          )}
+
+          <Filters aetRange={setRange} />
+        </div>
+
+        
+        {loading ? (
+          <Loader />
+        ) : (
+          <PilotMap pilots={pilots} adminCoords={adminCoords} />
+        )}
       </div>
-      
-      <PilotMap pilots={pilots} adminCoords={adminCoords} />
-      
-    </div>
     </>
   );
 }
