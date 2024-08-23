@@ -18,7 +18,7 @@ function App() {
     const fetchPilots = async () => {
       try {
         const [lat, lng] = adminCoords;
-        const response = await axios.get(`http://localhost:5000/api/pilots/search`, {
+        const response = await axios.get(`https://drone-flying-pilots.onrender.com/api/pilots/search`, {
           params: { lat, lng, range },
         });
         setPilots(response.data); // Assuming response.data contains the pilot list
